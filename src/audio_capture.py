@@ -14,11 +14,23 @@ class AudioCapture:
         self.buffer[:-self.blocksize] = self.buffer[self.blocksize:]
         self.buffer[-self.blocksize:] = new_block
 
+    def _spectral_flatness(self, window):
+        epsilon = 1e-10
+
+        spectrum = np.abs(np.fft.rfft(window))
+
+        geometric_mean = np.exp(np.mean(np.log(spectrum + epsilon)))
+        arithmetic_mean = np.mean(spectrum)
+
+        return geometric_mean / (arithmetic_mean + epsilon)
+
     def _extract_window(self):
         for i in range(0, self.buffersize - self.windowsize + 1, self.step):
             window = self.buffer[i: i + self.windowsize]
+
             rms = np.sqrt(np.mean(window**2))
-            print(f"Window [{i}:{i + self.windowsize}] | RMS: {rms:.4f}")
+            sf = self._spectral_flatness(window)
+
 
     def _callback(self, indata, frames, time, status):
         mono_block = np.mean(indata, axis=1)

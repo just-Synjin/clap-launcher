@@ -2,13 +2,14 @@ import numpy as np
 import sounddevice as sd
 
 class AudioCapture:
-    def __init__(self, semplerate=44100, blocksize=1024, buffersize=4096, windowsize=1024, step=441):
+    def __init__(self, semplerate=44100, blocksize=1024, buffersize=4096, windowsize=1024, step=441, on_window=None):
         self.semplerate = semplerate
         self.blocksize = blocksize
         self.buffersize = buffersize
         self.buffer = np.zeros(buffersize)
         self.windowsize = windowsize
         self.step = step
+        self.on_window = on_window
 
     def _update_buffer(self, new_block):
         self.buffer[:-self.blocksize] = self.buffer[self.blocksize:]
@@ -30,6 +31,9 @@ class AudioCapture:
 
             rms = np.sqrt(np.mean(window**2))
             sf = self._spectral_flatness(window)
+
+        if self.on_window is not None:
+            self.on_window(rms, sf)
 
 
     def _callback(self, indata, frames, time, status):

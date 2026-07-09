@@ -9,7 +9,7 @@ class State(Enum):
     COOLDOWN_2 = 4
 
 class ClapDetector():
-    def __init__(self, rms_threshold=0.003, sf_threshold=0.6, cooldown_1_duration=0.2, cooldown_2_duration=0.2, wait_timeout=1.5):
+    def __init__(self, rms_threshold=0.003, sf_threshold=0.5, cooldown_1_duration=0.2, cooldown_2_duration=0.2, wait_timeout=1.3):
         self.state = State.IDLE
         self.rms_threshold = rms_threshold
         self.sf_threshold = sf_threshold

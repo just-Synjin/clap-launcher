@@ -8,9 +8,13 @@ def load_config():
         default = {"game_path": ""}
         save_config(default)
         return default
-
-    with open(CONFIG_PATH, "r") as f:
-        return json.load(f)
+    try:
+        with open(CONFIG_PATH, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        default = {"game_path": ""}
+        save_config(default)
+        return default
 
 def save_config(config):
     with open(CONFIG_PATH, "w") as f:

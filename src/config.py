@@ -5,14 +5,14 @@ CONFIG_PATH = "config.json"
 
 def load_config():
     if not os.path.exists(CONFIG_PATH):
-        default = {"game_path": ""}
+        default = {"steam_appid": ""}
         save_config(default)
         return default
     try:
         with open(CONFIG_PATH, "r") as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
-        default = {"game_path": ""}
+        default = {"steam_appid": ""}
         save_config(default)
         return default
 

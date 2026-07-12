@@ -6,14 +6,17 @@ class State(Enum):
     COOLDOWN_1 = 2
     WAITING_SECOND = 3
     COOLDOWN_2 = 4
+    POST_TRIGGER_COOLDOWN = 5
 
 class ClapDetector():
-    def __init__(self, sf_threshold=0.5, cooldown_1_duration=0.2, cooldown_2_duration=0.2, wait_timeout=1.3):
+    def __init__(self, sf_threshold=0.5, cooldown_1_duration=0.2, cooldown_2_duration=0.2,
+                 wait_timeout=1.3, post_trigger_cooldown_duration=40.0):
         self.state = State.IDLE
         self.sf_threshold = sf_threshold
         self.cooldown_1_duration = cooldown_1_duration
         self.cooldown_2_duration = cooldown_2_duration
         self.wait_timeout = wait_timeout
+        self.post_trigger_cooldown_duration = post_trigger_cooldown_duration
         self.state_entered_at = None
         self.bg_mean = 0.0002
         self.bg_mean_sq = 0.0002 ** 2
@@ -32,12 +35,7 @@ class ClapDetector():
         return (rms > threshold) and (sf > self.sf_threshold)
 
     def process(self, rms, sf):
-        """ Double-clap detector based on RMS (loudness) and spectral flatness (broadband nature).
-    Uses a state machine: IDLE -> COOLDOWN_1 -> WAITING_SECOND -> COOLDOWN_2 -> IDLE.
-    Cooldowns are necessary to avoid confusing the reverberation or echo of a single clap with a new event."""
-
         current_time = time.time()
-        # state_entered_at is still None while we are in IDLE — guarding against a subtraction error
         time_in_state = (current_time - self.state_entered_at) if self.state_entered_at is not None else None
 
         if self.state == State.IDLE:
@@ -52,7 +50,6 @@ class ClapDetector():
                 self.state_entered_at = current_time
 
         elif self.state == State.WAITING_SECOND:
-
             if time_in_state > self.wait_timeout:
                 self.state = State.IDLE
             elif self._is_clap(rms, sf):
@@ -61,5 +58,10 @@ class ClapDetector():
 
         elif self.state == State.COOLDOWN_2:
             if time_in_state > self.cooldown_2_duration:
-                self.state = State.IDLE
+                self.state = State.POST_TRIGGER_COOLDOWN
+                self.state_entered_at = current_time
                 return True
+
+        elif self.state == State.POST_TRIGGER_COOLDOWN:
+            if time_in_state > self.post_trigger_cooldown_duration:
+                self.state = State.IDLE

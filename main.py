@@ -8,22 +8,26 @@ import threading
 
 config = load_config()
 
-if not config.get("game_path"):
-    print("Game path not configured, opening settings window...")
+if not config.get("steam_appid"):
+    print("Steam App ID not configured, opening settings window...")
     run_gui()
-    config = load_config()  # re-read — in case the user saved a path
+    config = load_config()
 
 detector = ClapDetector()
-launcher = GameLauncher(game_path=config["game_path"])
+launcher = GameLauncher(steam_appid=config["steam_appid"])
 
 def handle_window(rms, sf):
     result = detector.process(rms, sf)
     if result:
         launcher.launch()
 
-capture = AudioCapture(on_window=handle_window)
+def open_settings():
+    run_gui()
+    new_config = load_config()
+    launcher.steam_appid = new_config.get("steam_appid", "")
 
+capture = AudioCapture(on_window=handle_window)
 thread = threading.Thread(target=capture.start, daemon=True)
 thread.start()
 
-run_tray(on_quit=lambda:None)
+run_tray(on_quit=lambda: None, on_settings=open_settings)

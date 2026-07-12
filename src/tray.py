@@ -1,4 +1,3 @@
-import threading
 import pystray
 from PIL import Image, ImageDraw
 
@@ -8,12 +7,16 @@ def create_icon_image():
     draw.ellipse((8, 8, 56, 56), fill="black")
     return image
 
-def run_tray(on_quit):
+def run_tray(on_quit, on_settings):
     def quit_action(icon, item):
         icon.stop()
         on_quit()
 
+    def settings_action(icon, item):
+        on_settings()
+
     menu = pystray.Menu(
+        pystray.MenuItem("Settings", settings_action),
         pystray.MenuItem("Quit", quit_action)
     )
 

@@ -1,17 +1,15 @@
-import subprocess
 import os
 
 class GameLauncher:
-    def __init__(self, game_path):
-        self.game_path = game_path
+    def __init__(self, steam_appid):
+        self.steam_appid = steam_appid
 
     def launch(self):
-        if not os.path.exists(self.game_path):
-            print(f"File not found: {self.game_path}")
+        if not self.steam_appid:
+            print("Steam App ID not configured.")
             return False
-
         try:
-            subprocess.Popen(self.game_path)
+            os.startfile(f"steam://run/{self.steam_appid}")
             return True
         except Exception as e:
             print(f"Launch error: {e}")
